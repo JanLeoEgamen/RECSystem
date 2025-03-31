@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('articles', function (Blueprint $table) {
+        Schema::create('communities', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->text('text')->nullable();
-            $table->string('author');
+            $table->text('content');
+            $table->string('image');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->boolean('status')->default(true);
             $table->timestamps();
-        });
+            $table->softDeletes();
+                });
     }
 
     /**
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('articles');
+        Schema::dropIfExists('communities');
     }
 };

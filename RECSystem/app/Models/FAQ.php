@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Article extends Model
+class FAQ extends Model
 {
     use HasFactory, SoftDeletes;
+    protected $table = 'faqs'; // Explicitly set the table name
 
     protected $fillable = [
-        'title',
-        'content',
-        'image',
+        'question',
+        'answer',
         'user_id',
         'status'
     ];
@@ -23,10 +23,5 @@ class Article extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Scope for active articles
-    public function scopeActive($query)
-    {
-        return $query->where('status', true);
-    }
 
 }

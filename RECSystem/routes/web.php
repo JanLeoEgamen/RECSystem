@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\EventAnnouncementController;
+use App\Http\Controllers\FAQController;
+use App\Http\Controllers\MainCarouselController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
@@ -37,6 +40,49 @@ Route::middleware('auth')->group(function () {
     Route::post('/roles/{id}', [RoleController::class, 'update'])->name('roles.update');
     Route::delete('/roles', [RoleController::class, 'destroy'])->name('roles.destroy');
 
+    //users
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users', [UserController::class, 'destroy'])->name('users.destroy');
+
+
+        //faqs
+    Route::get('/faqs', [FAQController::class, 'index'])->name('faqs.index');
+    Route::get('/faqs/create', [FAQController::class, 'create'])->name('faqs.create');
+    Route::post('/faqs', [FAQController::class, 'store'])->name('faqs.store');
+    Route::get('/faqs/{id}/edit', [FAQController::class, 'edit'])->name('faqs.edit');
+    Route::post('/faqs/{id}', [FAQController::class, 'update'])->name('faqs.update');
+    Route::delete('/faqs', [FAQController::class, 'destroy'])->name('faqs.destroy');
+    
+    
+    //main carousels
+    Route::get('/main-carousels', [MainCarouselController::class, 'index'])->name('main-carousels.index');
+    Route::get('/main-carousels/create', [MainCarouselController::class, 'create'])->name('main-carousels.create');
+    Route::post('/main-carousels', [MainCarouselController::class, 'store'])->name('main-carousels.store');
+    Route::get('/main-carousels/{id}/edit', [MainCarouselController::class, 'edit'])->name('main-carousels.edit');
+    Route::post('/main-carousels/{id}', [MainCarouselController::class, 'update'])->name('main-carousels.update');
+    Route::delete('/main-carousels', [MainCarouselController::class, 'destroy'])->name('main-carousels.destroy');
+
+    //event announcements
+    Route::get('/event-announcements', [EventAnnouncementController::class, 'index'])->name('event-announcements.index');
+    Route::get('/event-announcements/create', [EventAnnouncementController::class, 'create'])->name('event-announcements.create');
+    Route::post('/event-announcements', [EventAnnouncementController::class, 'store'])->name('event-announcements.store');
+    Route::get('/event-announcements/{id}/edit', [EventAnnouncementController::class, 'edit'])->name('event-announcements.edit');
+    Route::post('/event-announcements/{id}', [EventAnnouncementController::class, 'update'])->name('event-announcements.update');
+    Route::delete('/event-announcements', [EventAnnouncementController::class, 'destroy'])->name('event-announcements.destroy');
+
+    //communities
+    Route::get('/communities', [CommunityController::class, 'index'])->name('communities.index');
+    Route::get('/communities/create', [CommunityController::class, 'create'])->name('communities.create');
+    Route::post('/communities', [CommunityController::class, 'store'])->name('communities.store');
+    Route::get('/communities/{id}/edit', [CommunityController::class, 'edit'])->name('communities.edit');
+    Route::post('/communities/{id}', [CommunityController::class, 'update'])->name('communities.update');
+    Route::delete('/communities', [CommunityController::class, 'destroy'])->name('communities.destroy');
+
+
     //articles
     Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
     Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create');
@@ -45,13 +91,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
     Route::delete('/articles', [ArticleController::class, 'destroy'])->name('articles.destroy');
 
-    //users
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users', [UserController::class, 'destroy'])->name('users.destroy');
+
+
 
 });
 
