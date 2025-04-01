@@ -74,6 +74,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(MainCarousel::class);
     }
+
+
+    public function supporters()
+    {
+        return $this->hasMany(Supporter::class);
+    }
+
     
 
 }

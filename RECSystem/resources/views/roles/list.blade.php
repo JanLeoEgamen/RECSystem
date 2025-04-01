@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between"> 
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            <h2 class="font-semibold text-4xl text-white dark:text-gray-200 leading-tight">
                 {{ __('Roles') }}
             </h2>
             @can('create roles')
-            <a href="{{ route('roles.create') }}" class="bg-slate-700 text-sm text-white rounded-md px-3 py-2">Create</a>
+            <a href="{{ route('roles.create') }}" class="inline-block px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-xl leading-normal">Create</a>
             @endcan
         </div>
     </x-slot>
@@ -15,7 +15,7 @@
             <x-message> </x-message>
 
 
-                        <table class="w-full">
+                <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr class="border-b">
                         <th class="px-6 py-3 text-left" width = "60">#</th>
@@ -45,11 +45,11 @@
                         <td class="px-6 py-3 text-center">
 
                         @can('edit roles')
-                        <a href="{{ route('roles.edit', $role->id) }}" class="bg-slate-700 text-sm text-white rounded-md px-3 py-2 hover:bg-slate-600">Edit</a>
+                        <a href="{{ route('roles.edit', $role->id) }}" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>
                         @endcan
 
                         @can('delete roles')
-                        <a href="javascript:void" onclick="deleteRole({{ $role->id }})" class="bg-red-600 text-sm text-white rounded-md px-3 py-2 hover:bg-red-500">Delete</a>
+                        <a href="javascript:void" onclick="deleteRole({{ $role->id }})" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>
                         @endcan
 
                         </td>

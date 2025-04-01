@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between"> 
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                Event Announcements / Edit
+            <h2 class="font-semibold text-4xl text-white dark:text-gray-200 leading-tight">
+                    Event Announcements / Edit
             </h2>
-            <a href="{{ route('event-announcements.index') }}" class="bg-slate-700 text-sm text-white rounded-md px-3 py-3">Back</a>
+            <a href="{{ route('event-announcements.index') }}" class="inline-block px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-xl leading-normal">Back</a>
         </div>
     </x-slot>
 
@@ -65,7 +65,7 @@
                                 <label for="status" class="ml-2">Active</label>
                             </div>
 
-                            <button class="bg-slate-700 hover:bg-slate-500 text-sm text-white rounded-md px-5 py-3">Update</button>
+                            <button class="inline-block px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-xl leading-normal">Update</button>
                         </div>
                     </form>
                 </div>

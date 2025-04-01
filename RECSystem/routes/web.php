@@ -8,6 +8,7 @@ use App\Http\Controllers\MainCarouselController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SupporterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -83,6 +84,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/communities', [CommunityController::class, 'destroy'])->name('communities.destroy');
 
 
+    //supporters
+    Route::get('/supporters', [SupporterController::class, 'index'])->name('supporters.index');
+    Route::get('/supporters/create', [SupporterController::class, 'create'])->name('supporters.create');
+    Route::post('/supporters', [SupporterController::class, 'store'])->name('supporters.store');
+    Route::get('/supporters/{id}/edit', [SupporterController::class, 'edit'])->name('supporters.edit');
+    Route::post('/supporters/{id}', [SupporterController::class, 'update'])->name('supporters.update');
+    Route::delete('/supporters', [SupporterController::class, 'destroy'])->name('supporters.destroy');
+
     //articles
     Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
     Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create');
@@ -95,6 +104,11 @@ Route::middleware('auth')->group(function () {
 
 
 });
+
+Route::fallback(function () {
+    return redirect()->route('dashboard')->with('error', 'Page not found.');
+});
+
 
 
 require __DIR__.'/auth.php';
