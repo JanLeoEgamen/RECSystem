@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles,  SoftDeletes; // Add SoftDeletes trait
@@ -22,7 +22,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
+        'birthdate',
         'email',
         'password',
     ];
@@ -81,6 +83,30 @@ class User extends Authenticatable
         return $this->hasMany(Supporter::class);
     }
 
-    
+    public function bureaus()
+    {
+        return $this->hasMany(Bureau::class);
+    }
+
+    public function sections()
+    {
+        return $this->hasMany(Section::class);
+    }
+
+    public function membershipTypes()
+    {
+        return $this->hasMany(MembershipType::class);
+    }
+
+    public function applicants()
+    {
+        return $this->hasMany(Applicant::class);
+    }
+
+    public function members()
+    {
+        return $this->hasMany(Member::class);
+    }
+
 
 }

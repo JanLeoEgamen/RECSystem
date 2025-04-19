@@ -15,10 +15,29 @@
                     <form action="{{route('users.store')    }} " method="post">
                         @csrf
                         <div>
-                            <label for="" class="text-sm font-medium"> Name</label>
-                            <div class = "my-3">    
-                                <input value="{{ old('name') }}" name="name" placeholder="Enter name" type="text" class="border-gray-300 shadow-sm w-1/2 rounded-lg  ">
-                                @error('name')
+                            <!-- First Name -->
+                            <label for="first_name" class="text-sm font-medium">First Name</label>
+                            <div class="my-3">    
+                                <input value="{{ old('first_name') }}" name="first_name" placeholder="Enter first name" type="text" class="border-gray-300 shadow-sm w-1/2 rounded-lg">
+                                @error('first_name')
+                                <p class="text-red-400 font-medium"> {{ $message }} </p>
+                                @enderror
+                            </div>
+
+                            <!-- Last Name -->
+                            <label for="last_name" class="text-sm font-medium">Last Name</label>
+                            <div class="my-3">    
+                                <input value="{{ old('last_name') }}" name="last_name" placeholder="Enter last name" type="text" class="border-gray-300 shadow-sm w-1/2 rounded-lg">
+                                @error('last_name')
+                                <p class="text-red-400 font-medium"> {{ $message }} </p>
+                                @enderror
+                            </div>
+
+                            <!-- Birthdate -->
+                            <label for="birthdate" class="text-sm font-medium">Birthdate</label>
+                            <div class="my-3">    
+                                <input value="{{ old('birthdate') }}" name="birthdate" type="date" class="border-gray-300 shadow-sm w-1/2 rounded-lg">
+                                @error('birthdate')
                                 <p class="text-red-400 font-medium"> {{ $message }} </p>
                                 @enderror
                             </div>

@@ -8,6 +8,9 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Str;
+
 
 class CommunityController extends Controller implements HasMiddleware
 {
@@ -21,12 +24,52 @@ class CommunityController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $communities = Community::with('user')->latest()->paginate(10);
-        return view('communities.list', [
-            'communities' => $communities
-        ]);
+        if ($request->ajax()) {
+            $data = Community::with('user')->select('*');
+            
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $editBtn = '';
+                    $deleteBtn = '';
+                    
+                    if (request()->user()->can('edit communities')) {
+                        $editBtn = '<a href="'.route('communities.edit', $row->id).'" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>';
+                    }
+                    
+                    if (request()->user()->can('delete communities')) {
+                        $deleteBtn = '<a href="javascript:void(0)" onclick="deleteCommunity('.$row->id.')" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>';
+                    }
+                    
+                    return $editBtn.' '.$deleteBtn;
+                })
+                ->editColumn('content', function($row) {
+                    return Str::limit($row->content, 50);
+                })
+                ->editColumn('image', function($row) {
+                    if ($row->image) {
+                        return '<img src="'.asset('images/'.$row->image).'" alt="Community Image" class="h-20 w-20 object-cover">';
+                    }
+                    return 'No Image';
+                })
+                ->addColumn('author', function($row) {
+                    return $row->user->first_name . ' ' . $row->user->last_name;
+                })
+                ->editColumn('status', function($row) {
+                    return $row->status 
+                        ? '<span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Active</span>'
+                        : '<span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactive</span>';
+                })
+                ->editColumn('created_at', function($row) {
+                    return $row->created_at->format('d M, y');
+                })
+                ->rawColumns(['action', 'status', 'image'])
+                ->make(true);
+        }
+        
+        return view('communities.list');
     }
 
     public function create()

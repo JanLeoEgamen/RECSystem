@@ -14,79 +14,57 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-message></x-message>
 
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr class="border-b">
-                        <th class="px-6 py-3 text-left" width="60">#</th>
-                        <th class="px-6 py-3 text-left">Title</th>
-                        <th class="px-6 py-3 text-left">Image</th>
-                        <th class="px-6 py-3 text-left">Article Author</th>
-                        <th class="px-6 py-3 text-left">Uploaded by</th>
-                        <th class="px-6 py-3 text-left">Status</th>
-                        <th class="px-6 py-3 text-left" width="180">Created</th>
-                        <th class="px-6 py-3 text-center" width="180">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white">
-                    @if ($articles->isNotEmpty())
-                    @foreach ($articles as $article)
-                    <tr class="border-b">
-                        <td class="px-6 py-3 text-left">
-                            {{ $article->id }}
-                        </td>
-                        <td class="px-6 py-3 text-left">
-                            {{ $article->title }}
-                        </td>
-                        <td class="px-6 py-3 text-left">
-                            <div class="relative w-40" style="aspect-ratio: 16/9;">
-                                @if($article->image)
-                                    <img src="{{ asset('storage/' . $article->image) }}" alt="Community Image" class="h-20 w-20 object-cover">
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-6 py-3 text-left">
-                            {{ $article->author }}
-                        </td>
-                        <td class="px-6 py-3 text-left">
-                            {{ $article->user->name }}
-                        </td>
-                        <td class="px-6 py-3 text-left">
-                            @if($article->status)
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Active</span>
-                            @else
-                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactive</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-3 text-left">
-                            {{ \Carbon\Carbon::parse($article->created_at)->format('d M, y')}}
-                        </td>
-                        <td class="px-6 py-3 text-center">
-                            @can('edit articles')
-                            <a href="{{ route('articles.edit', $article->id) }}" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>
-                            @endcan
-
-                            @can('delete articles')
-                            <a href="javascript:void(0)" onclick="deleteArticle({{ $article->id }})" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>
-                            @endcan
-                        </td>
-                    </tr>
-                    @endforeach
-                    @else
-                    <tr>
-                        <td colspan="6" class="px-6 py-3 text-center">No articles found</td>
-                    </tr>
-                    @endif
-                </tbody>
-            </table>
-
-            <div class="my-3">
-                {{ $articles->links() }}
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <table id="articlesTable" class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr class="border-b">
+                                <th class="px-6 py-3 text-left">#</th>
+                                <th class="px-6 py-3 text-left">Title</th>
+                                <th class="px-6 py-3 text-left">Image</th>
+                                <th class="px-6 py-3 text-left">Article Author</th>
+                                <th class="px-6 py-3 text-left">Uploaded by</th>
+                                <th class="px-6 py-3 text-left">Status</th>
+                                <th class="px-6 py-3 text-left">Created</th>
+                                <th class="px-6 py-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <x-slot name="script">
+        <!-- Include DataTables CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+        <!-- Include DataTables JS -->
+        <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+        
         <script type="text/javascript">
+            $(document).ready(function() {
+                $('#articlesTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: "{{ route('articles.index') }}",
+                    columns: [
+                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                        { data: 'title', name: 'title' },
+                        { data: 'image', name: 'image', orderable: false, searchable: false },
+                        { data: 'author', name: 'author' },
+                        { data: 'uploaded_by', name: 'user.first_name' },
+                        { data: 'status', name: 'status' },
+                        { data: 'created_at', name: 'created_at' },
+                        { data: 'action', name: 'action', orderable: false, searchable: false }
+                    ],
+                    responsive: true,
+                    autoWidth: false,
+                    lengthMenu: [10, 25, 50, 100],
+                    pageLength: 10
+                });
+            });
+
             function deleteArticle(id) {
                 if (confirm("Are you sure you want to delete?")) {
                     $.ajax({
@@ -98,7 +76,7 @@
                             'x-csrf-token': '{{ csrf_token() }}'
                         },
                         success: function(response) {
-                            window.location.href = '{{ route("articles.index")}}'
+                            $('#articlesTable').DataTable().ajax.reload();
                         }
                     });
                 }

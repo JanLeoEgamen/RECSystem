@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Yajra\DataTables\Facades\DataTables;
 
 class PermissionController extends Controller implements HasMiddleware
 {
@@ -22,14 +23,36 @@ class PermissionController extends Controller implements HasMiddleware
     }
 
     // This method is for showing permissions page
-    public function index(){
-        $permissions = Permission::orderBy('created_at', 'DESC')->paginate(10);
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Permission::select('*');
+            
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $editBtn = '';
+                    $deleteBtn = '';
+                    
+                    if (request()->user()->can('edit permissions')) {
+                        $editBtn = '<a href="'.route('permissions.edit', $row->id).'" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>';
+                    }
+                    
+                    if (request()->user()->can('delete permissions')) {
+                        $deleteBtn = '<a href="javascript:void(0)" onclick="deletePermission('.$row->id.')" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>';
+                    }
+                    
+                    return $editBtn.' '.$deleteBtn;
+                })
+                ->editColumn('created_at', function($row) {
+                    return $row->created_at->format('d M, y');
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
         
-        return view('permissions.list', [
-            'permissions' => $permissions
-        ]);
+        return view('permissions.list');
     }
-
     // This method is for showing create permission page
     public function create(){
         return view('permissions.create');

@@ -34,7 +34,7 @@
                             <label for="image" class="text-sm font-medium">Image</label>
                             <div class="my-3">
                                 @if($mainCarousel->image)
-                                    <img src="{{ asset('storage/' . $mainCarousel->image) }}" alt="Carousel Image" class="h-20 w-20 object-cover mb-2">
+                                    <img src="{{ asset('images/' . $mainCarousel->image) }}" alt="Carousel Image" class="h-40 w-40 object-cover mb-2">
                                 @endif
                                 <input name="image" type="file" class="border-gray-300 shadow-sm w-1/2 rounded-lg">
                                 @error('image')

@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Yajra\DataTables\Facades\DataTables;
 
 class RoleController extends Controller implements HasMiddleware
 {
@@ -23,13 +24,39 @@ class RoleController extends Controller implements HasMiddleware
     }
 
     //This method will show roles page
-    public function index(){
-        $roles = Role::orderBy('name', 'ASC')->paginate(10);
-        return view('roles.list',[
-            'roles' => $roles
-        ]);
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Role::with('permissions')->select('*');
+            
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $editBtn = '';
+                    $deleteBtn = '';
+                    
+                    if (request()->user()->can('edit roles')) {
+                        $editBtn = '<a href="'.route('roles.edit', $row->id).'" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>';
+                    }
+                    
+                    if (request()->user()->can('delete roles')) {
+                        $deleteBtn = '<a href="javascript:void(0)" onclick="deleteRole('.$row->id.')" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>';
+                    }
+                    
+                    return $editBtn.' '.$deleteBtn;
+                })
+                ->addColumn('permissions', function($row) {
+                    return $row->permissions->pluck('name')->implode(', ');
+                })
+                ->editColumn('created_at', function($row) {
+                    return $row->created_at->format('d M, y');
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+        
+        return view('roles.list');
     }
-
      //This method will create roles page
      public function create(){
         $permissions = Permission::orderBy('name', 'ASC')->get();

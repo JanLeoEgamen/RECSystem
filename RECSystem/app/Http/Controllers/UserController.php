@@ -9,6 +9,7 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller implements HasMiddleware
 {
@@ -26,14 +27,42 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $users = User::latest()->paginate(10);
-        return view('users.list', [
-            'users' => $users
-        ]);
+    public function index(Request $request)
+{
+    if ($request->ajax()) {
+        $data = User::with('roles')->select('*');
+        
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('action', function($row){
+                $editBtn = '';
+                $deleteBtn = '';
+                
+                if (request()->user()->can('edit users')) {
+                    $editBtn = '<a href="'.route('users.edit', $row->id).'" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>';
+                }
+                
+                if (request()->user()->can('delete users')) {
+                    $deleteBtn = '<a href="javascript:void(0)" onclick="deleteUser('.$row->id.')" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>';
+                }
+                
+                return $editBtn.' '.$deleteBtn;
+            })
+            ->addColumn('name', function($row) {
+                return $row->first_name . ' ' . $row->last_name;
+            })
+            ->addColumn('roles', function($row) {
+                return $row->roles->pluck('name')->implode(', ');
+            })
+            ->editColumn('created_at', function($row) {
+                return $row->created_at->format('d M, y');
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
-
+    
+    return view('users.list');
+}
     /**
      * Show the form for creating a new resource.
      */
@@ -52,18 +81,21 @@ class UserController extends Controller implements HasMiddleware
     {
 
         $validator = Validator::make($request->all(),[
-            'name' => 'required|min:3',
+            'first_name' => 'required|min:3',
+            'last_name' => 'required|min:3',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:5|same:confirm_password',
             'confirm_password' => 'required',
         ]);
-
+        
         if($validator->fails()){
             return redirect()->route('users.create')->withInput()->withErrors($validator);
         }
         
         $user = new User();
-        $user->name = $request->name;
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->birthdate = $request->birthdate;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->save();
@@ -99,8 +131,10 @@ class UserController extends Controller implements HasMiddleware
     {
         $user = User::findOrFail($id);
 
+
         $validator = Validator::make($request->all(),[
-            'name' => 'required|min:3',
+            'first_name' => 'required|min:3',
+            'last_name' => 'required|min:3',
             'email' => 'required|email|unique:users,email,'.$id.',id'
         ]);
 
@@ -108,7 +142,9 @@ class UserController extends Controller implements HasMiddleware
             return redirect()->route('users.edit', $id)->withInput()->withErrors($validator);
         }
         
-        $user->name = $request->name;
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->birthdate = $request->birthdate;
         $user->email = $request->email;
         $user->save();
 
