@@ -122,7 +122,7 @@
 
 
             <!-- Membership, Bureau & Section Management -->
-            @canany(['view membership types', 'view bureaus', 'view sections'])
+            @canany(['view membership types', 'view bureaus', 'view sections', 'veiw applicants', 'view members'])
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -154,10 +154,30 @@
                             {{ __('Sections') }}
                         </x-dropdown-link>
                         @endcan
+
+                        @can('view applicants')
+                        <x-dropdown-link :href="route('applicants.index')">
+                            {{ __('Applicants') }}
+                        </x-dropdown-link>
+                        @endcan
+
+                        @can('view members')
+                        <x-dropdown-link :href="route('members.index')">
+                            {{ __('Members') }}
+                        </x-dropdown-link>
+                        @endcan
+
+                        @can('view reports')
+                        <x-dropdown-link :href="route('reports.index')">
+                            {{ __('Reports') }}
+                        </x-dropdown-link>
+                        @endcan
+
+
                     </x-slot> 
                 </x-dropdown>
             </div>
-            @endcanany
+            @endcan
 
 
 

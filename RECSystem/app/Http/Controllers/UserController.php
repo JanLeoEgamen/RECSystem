@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bureau;
+use App\Models\Section;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -28,50 +30,79 @@ class UserController extends Controller implements HasMiddleware
      * Display a listing of the resource.
      */
     public function index(Request $request)
-{
-    if ($request->ajax()) {
-        $data = User::with('roles')->select('*');
+    {
+        if ($request->ajax()) {
+            $data = User::with(['roles', 'assignedBureaus', 'assignedSections'])->select('*');
+            
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row) {
+                    $buttons = '';
+                    
+                    if (request()->user()->can('edit users')) {
+                        $buttons .= '<a href="'.route('users.edit', $row->id).'" class="p-2 text-indigo-600 hover:text-white hover:bg-indigo-600 rounded-full transition-colors duration-200" title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </a>';
+                    }
+
+                    if (request()->user()->can('delete users')) {
+                        $buttons .= '<a href="javascript:void(0)" onclick="deleteUser('.$row->id.')" class="p-2 text-red-600 hover:text-white hover:bg-red-600 rounded-full transition-colors duration-200" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </a>';
+                    }
+
+                    return '<div class="flex space-x-2">'.$buttons.'</div>';
+                })
+                ->addColumn('name', function($row) {
+                    return $row->first_name . ' ' . $row->last_name;
+                })
+                ->addColumn('roles', function($row) {
+                    return $row->roles->pluck('name')->implode(', ');
+                })
+                ->addColumn('assignments', function($row) {
+                    $assignments = [];
+                    
+                    // Get bureau assignments
+                    foreach ($row->assignedBureaus as $bureau) {
+                        $assignments[] = 'Bureau: ' . $bureau->bureau_name;
+                    }
+                    
+                    // Get section assignments
+                    foreach ($row->assignedSections as $section) {
+                        $assignments[] = 'Section: ' . $section->section_name . ' (' . $section->bureau->bureau_name . ')';
+                    }
+                    
+                    return implode('<br>', $assignments) ?: 'No assignments';
+                })
+                ->editColumn('created_at', function($row) {
+                    return $row->created_at->format('d M, y');
+                })
+                ->rawColumns(['action', 'assignments'])
+                ->make(true);
+        }
         
-        return DataTables::of($data)
-            ->addIndexColumn()
-            ->addColumn('action', function($row){
-                $editBtn = '';
-                $deleteBtn = '';
-                
-                if (request()->user()->can('edit users')) {
-                    $editBtn = '<a href="'.route('users.edit', $row->id).'" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>';
-                }
-                
-                if (request()->user()->can('delete users')) {
-                    $deleteBtn = '<a href="javascript:void(0)" onclick="deleteUser('.$row->id.')" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>';
-                }
-                
-                return $editBtn.' '.$deleteBtn;
-            })
-            ->addColumn('name', function($row) {
-                return $row->first_name . ' ' . $row->last_name;
-            })
-            ->addColumn('roles', function($row) {
-                return $row->roles->pluck('name')->implode(', ');
-            })
-            ->editColumn('created_at', function($row) {
-                return $row->created_at->format('d M, y');
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return view('users.list');
+
     }
-    
-    return view('users.list');
-}
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $roles = Role::orderBy('name', 'ASC')->get();
-        return view('users.create',[
-            'roles' => $roles
-        ]);
+    $roles = Role::orderBy('name', 'ASC')->get();
+    $bureaus = Bureau::orderBy('bureau_name', 'ASC')->get();
+    $sections = Section::with('bureau')->orderBy('section_name', 'ASC')->get();
+    
+    return view('users.create', [
+        'roles' => $roles,
+        'bureaus' => $bureaus,
+        'sections' => $sections
+    ]);
+
     }
 
     /**
@@ -102,6 +133,25 @@ class UserController extends Controller implements HasMiddleware
 
         $user->syncRoles($request->role);
 
+            // Assign bureaus and sections
+        if ($request->has('bureaus')) {
+            $bureauAssignments = [];
+            foreach ($request->bureaus as $bureauId) {
+                $bureauAssignments[$bureauId] = ['section_id' => null];
+            }
+            $user->assignedBureaus()->sync($bureauAssignments);
+        }
+
+        if ($request->has('sections')) {
+            $sectionAssignments = [];
+            foreach ($request->sections as $sectionId) {
+                $section = Section::find($sectionId);
+                $sectionAssignments[$sectionId] = ['bureau_id' => $section->bureau_id];
+            }
+            $user->assignedSections()->sync($sectionAssignments);
+        }
+
+
         return redirect()->route('users.index')->with('success', 'User added successfully');
 
     }
@@ -112,16 +162,20 @@ class UserController extends Controller implements HasMiddleware
      */
     public function edit(string $id)
     { 
-        $user = User::findOrFail($id);
-        $roles = Role::orderBy('name', 'ASC')->get();
+    $user = User::findOrFail($id);
+    $roles = Role::orderBy('name', 'ASC')->get();
+    $bureaus = Bureau::orderBy('bureau_name', 'ASC')->get();
+    $sections = Section::with('bureau')->orderBy('section_name', 'ASC')->get();
 
-        $hasRoles = $user->roles->pluck('id');
-        
-        return view('users.edit', [
-            'user' => $user,
-            'roles' => $roles,
-            'hasRoles' =>$hasRoles
-        ]);
+    $hasRoles = $user->roles->pluck('id');
+    
+    return view('users.edit', [
+        'user' => $user,
+        'roles' => $roles,
+        'hasRoles' => $hasRoles,
+        'bureaus' => $bureaus,
+        'sections' => $sections
+    ]);
     }
 
     /**
@@ -149,6 +203,25 @@ class UserController extends Controller implements HasMiddleware
         $user->save();
 
         $user->syncRoles($request->role);
+
+            // Update bureau and section assignments
+        $bureauAssignments = [];
+        if ($request->has('bureaus')) {
+            foreach ($request->bureaus as $bureauId) {
+                $bureauAssignments[$bureauId] = ['section_id' => null];
+            }
+        }
+        $user->assignedBureaus()->sync($bureauAssignments);
+
+        $sectionAssignments = [];
+        if ($request->has('sections')) {
+            foreach ($request->sections as $sectionId) {
+                $section = Section::find($sectionId);
+                $sectionAssignments[$sectionId] = ['bureau_id' => $section->bureau_id];
+            }
+        }
+        $user->assignedSections()->sync($sectionAssignments);
+
 
         return redirect()->route('users.index')->with('success', 'User updated successfully');
 

@@ -37,8 +37,8 @@ class Applicant extends Model
         'barangay',
         'house_building_number_name',
         'zip_code',
-        'street_address'
-
+        'street_address',
+        'is_student'
         
     ];
 

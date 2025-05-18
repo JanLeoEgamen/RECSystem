@@ -31,20 +31,28 @@ class RoleController extends Controller implements HasMiddleware
             
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $editBtn = '';
-                    $deleteBtn = '';
+                ->addColumn('action', function($row) {
+                    $buttons = '';
                     
                     if (request()->user()->can('edit roles')) {
-                        $editBtn = '<a href="'.route('roles.edit', $row->id).'" class="inline-block mb-2 px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Edit</a>';
+                        $buttons .= '<a href="'.route('roles.edit', $row->id).'" class="p-2 text-indigo-600 hover:text-white hover:bg-indigo-600 rounded-full transition-colors duration-200" title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </a>';
                     }
-                    
+
                     if (request()->user()->can('delete roles')) {
-                        $deleteBtn = '<a href="javascript:void(0)" onclick="deleteRole('.$row->id.')" class="inline-block px-3 py-2 text-white hover:text-[#a10303] hover:border-[#a10303] bg-[#a10303] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#a10303] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-md leading-normal">Delete</a>';
+                        $buttons .= '<a href="javascript:void(0)" onclick="deleteRole('.$row->id.')" class="p-2 text-red-600 hover:text-white hover:bg-red-600 rounded-full transition-colors duration-200" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </a>';
                     }
-                    
-                    return $editBtn.' '.$deleteBtn;
+
+                    return '<div class="flex space-x-2">'.$buttons.'</div>';
                 })
+
                 ->addColumn('permissions', function($row) {
                     return $row->permissions->pluck('name')->implode(', ');
                 })
@@ -58,14 +66,21 @@ class RoleController extends Controller implements HasMiddleware
         return view('roles.list');
     }
      //This method will create roles page
-     public function create(){
+     public function create() {
         $permissions = Permission::orderBy('name', 'ASC')->get();
-
+    
+        // Group permissions by object (last word in permission name)
+        $groupedPermissions = $permissions->groupBy(function ($permission) {
+            // Example: from 'create applicants', get 'applicants'
+            $words = explode(' ', $permission->name);
+            return end($words); // last word as group key
+        });
+    
         return view('roles.create', [
-            'permissions' => $permissions
+            'groupedPermissions' => $groupedPermissions
         ]);
-     }
-
+    }
+    
       //This method will insert role in db
     public function store(Request $request){
         $validator = Validator::make($request->all(),[
@@ -93,14 +108,16 @@ class RoleController extends Controller implements HasMiddleware
     //This method is for editing the role
     public function edit($id){
         $role = Role::findOrFail($id);
-        $hasPermissions = $role->permissions->pluck('name');
         $permissions = Permission::orderBy('name', 'ASC')->get();
+        $hasPermissions = $role->permissions;
+    
+        $groupedPermissions = $permissions->groupBy(function ($permission) {
+            $words = explode(' ', $permission->name);
+            return end($words);
+        });
+    
+        return view('roles.edit', compact('role', 'groupedPermissions', 'hasPermissions'));
 
-        return view('roles.edit', [
-            'permissions' => $permissions,
-            'hasPermissions' => $hasPermissions,
-            'role' => $role
-        ]);
     }
 
     //This method is for updating the role

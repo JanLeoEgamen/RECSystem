@@ -4,7 +4,12 @@
             <h2 class="font-semibold text-4xl text-white dark:text-gray-200 leading-tight">
                 Roles / Create
             </h2>
-            <a href="{{ route('roles.index') }}" class="inline-block px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-xl leading-normal">Back</a>
+                    <a href="{{ route('roles.index') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center">
+                        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Roles
+                    </a>                
         </div>
     </x-slot>
 
@@ -23,20 +28,38 @@
                                 @enderror
                             </div>
 
-                            <div class="grid grid-cols-4 mb-3" >
-                                    @if ($permissions->isNotEmpty())
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            @foreach($groupedPermissions as $object => $permissions)
+                                <div class="border p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
+                                    <h3 class="text-lg font-semibold mb-2 capitalize text-gray-800 dark:text-white">
+                                        {{ ucfirst($object) }} Permissions
+                                    </h3>
+                                    <div class="grid grid-cols-1 gap-2">
                                         @foreach($permissions as $permission)
-                                            <div class="mt-3">
-                                            <input type="checkbox" id="permission-{{ $permission->id}}" class="rounded" name="permission[]"
-                                            value="{{ $permission->name }}">
-                                            <label for="permission-{{ $permission->id}}">{{ $permission->name }}</label>
-
-                                            </div>
+                                            <label class="flex items-center space-x-2">
+                                                <input type="checkbox"
+                                                    name="permission[]"
+                                                    value="{{ $permission->name }}"
+                                                    id="permission-{{ $permission->id }}"
+                                                    class="rounded">
+                                                <span class="text-gray-900 dark:text-gray-200">{{ $permission->name }}</span>
+                                            </label>
                                         @endforeach
-                                    @endif
-                            </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
 
-                            <button class="inline-block px-5 py-2 text-white hover:text-[#101966] hover:border-[#101966] bg-[#101966] hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101966] border border-white border font-medium dark:border-[#3E3E3A] dark:hover:bg-black dark:hover:border-[#3F53E8] rounded-lg text-xl leading-normal">Submit</button>
+
+                        <div class="mt-6">
+                            <button type="submit" class="flex items-center px-4 py-2 text-sm text-blue-600 hover:text-white hover:bg-blue-600 rounded-md transition-colors duration-200 border border-blue-100 hover:border-blue-600 font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Create
+                            </button>
+                        </div>
+
                         </div>
                     </form>
                 </div>

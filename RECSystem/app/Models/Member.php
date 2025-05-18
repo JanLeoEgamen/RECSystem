@@ -50,10 +50,14 @@ class Member extends Model
 
     ];
 
-    protected $dates = [
-        'birthdate',
-        'license_expiration_date'
-    ];
+// In your Member model
+protected $dates = [
+    'birthdate',
+    'license_expiration_date',
+    'membership_end', // Add this line
+    'membership_start', // You might want to add this too
+    'last_renewal_date', // And this if needed
+];
 
     public function user()
     {

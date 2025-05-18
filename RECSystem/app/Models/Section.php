@@ -28,4 +28,9 @@ class Section extends Model
     }
 
 
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_bureau_section')
+            ->withPivot('bureau_id');
+    }
 }

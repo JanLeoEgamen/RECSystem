@@ -109,4 +109,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
+    public function assignedBureaus()
+    {
+        return $this->belongsToMany(Bureau::class, 'user_bureau_section')
+            ->withPivot('section_id');
+    }
+
+    public function assignedSections()
+    {
+        return $this->belongsToMany(Section::class, 'user_bureau_section')
+            ->withPivot('bureau_id');
+    }
+
 }

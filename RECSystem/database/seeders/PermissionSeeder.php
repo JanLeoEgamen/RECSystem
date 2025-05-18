@@ -17,19 +17,21 @@ class PermissionSeeder extends Seeder
 
         // Define permission groups
         $permissionGroups = [
-            'articles' => ['view', 'edit', 'create', 'delete'],
-            'communities' => ['view', 'edit', 'create', 'delete'],
-            'event announcements' => ['view', 'edit', 'create', 'delete'],
-            'faqs' => ['view', 'edit', 'create', 'delete'],
-            'main carousels' => ['view', 'edit', 'create', 'delete'],
-            'permissions' => ['view', 'edit', 'create', 'delete'],
-            'roles' => ['view', 'edit', 'create', 'delete'],
-            'supporters' => ['view', 'edit', 'create', 'delete'],
-            'users' => ['view', 'edit', 'create', 'delete'],
-            'sections' => ['view', 'edit', 'create', 'delete'],
-            'bureaus' => ['view', 'edit', 'create', 'delete'],
-            'membership types' => ['view', 'edit', 'create', 'delete'],
-            'markees' => ['view', 'edit', 'create', 'delete'],
+            // 'articles' => ['view', 'edit', 'create', 'delete'],
+            // 'communities' => ['view', 'edit', 'create', 'delete'],
+            // 'event announcements' => ['view', 'edit', 'create', 'delete'],
+            // 'faqs' => ['view', 'edit', 'create', 'delete'],
+            // 'main carousels' => ['view', 'edit', 'create', 'delete'],
+            // 'permissions' => ['view', 'edit', 'create', 'delete'],
+            // 'roles' => ['view', 'edit', 'create', 'delete'],
+            // 'supporters' => ['view', 'edit', 'create', 'delete'],
+            // 'users' => ['view', 'edit', 'create', 'delete'],
+            // 'sections' => ['view', 'edit', 'create', 'delete'],
+            // 'bureaus' => ['view', 'edit', 'create', 'delete'],
+            // 'membership types' => ['view', 'edit', 'create', 'delete'],
+            // 'markees' => ['view', 'edit', 'create', 'delete'],
+            'applicants' => ['view', 'edit', 'create', 'delete', 'assess'],
+            'members' => ['view', 'edit', 'create', 'delete'],
         ];
 
         // Create permissions

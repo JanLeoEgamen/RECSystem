@@ -1,32 +1,44 @@
 <?php
 
+use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\ApplicantConversionController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BureauController;
+use App\Http\Controllers\BureauSectionController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemographicsController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EventAnnouncementController;
 use App\Http\Controllers\FAQController;
+use App\Http\Controllers\LicensingComplianceController;
 use App\Http\Controllers\MainCarouselController;
 use App\Http\Controllers\MarkeeController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MembershipAnalyticsController;
 use App\Http\Controllers\MembershipTypeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportAnalyticsController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SupporterController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 
 
@@ -142,6 +154,41 @@ Route::middleware('auth')->group(function () {
     Route::get('/sections/{id}/edit', [SectionController::class, 'edit'])->name('sections.edit');
     Route::post('/sections/{id}', [SectionController::class, 'update'])->name('sections.update');
     Route::delete('/sections', [SectionController::class, 'destroy'])->name('sections.destroy');
+    
+    // Applicants
+    Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/create', [ApplicantController::class, 'create'])->name('applicants.create');
+    Route::post('/applicants', [ApplicantController::class, 'store'])->name('applicants.store');
+    Route::get('/applicants/{id}/edit', [ApplicantController::class, 'edit'])->name('applicants.edit');
+    Route::post('/applicants/{id}', [ApplicantController::class, 'update'])->name('applicants.update');
+    Route::delete('/applicants', [ApplicantController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/{id}', [ApplicantController::class, 'show'])->name('applicants.show');
+    Route::get('/applicants/{id}/assess', [ApplicantController::class, 'assess'])->name('applicants.assess');
+    Route::post('/applicants/{id}/approve', [ApplicantController::class, 'approve'])->name('applicants.approve');
+    Route::post('/applicants/{id}/reject', [ApplicantController::class, 'reject'])->name('applicants.reject');
+    Route::get('/applicants/rejected/list', [ApplicantController::class, 'rejected'])->name('applicants.rejected');
+    Route::post('/applicants/{id}/restore', [ApplicantController::class, 'restore'])->name('applicants.restore');
+    Route::get('/applicants/approved/list', [ApplicantController::class, 'approved'])->name('applicants.approved');
+
+    // Members
+    Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+    Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
+    Route::post('/members', [MemberController::class, 'store'])->name('members.store');
+    Route::get('/members/{id}/edit', [MemberController::class, 'edit'])->name('members.edit');
+    Route::post('/members/{id}', [MemberController::class, 'update'])->name('members.update');
+    Route::delete('/members', [MemberController::class, 'destroy'])->name('members.destroy');
+    Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
+    Route::get('/members/{member}/renew', [MemberController::class, 'showRenewalForm'])->name('members.renew.show');
+    Route::put('/members/{member}/renew', [MemberController::class, 'processRenewal'])->name('members.renew');
+
+    //reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/membership', [ReportController::class, 'membership'])->name('reports.membership');
+    Route::get('/reports/applicants', [ReportController::class, 'applicants'])->name('reports.applicants');
+    Route::get('/reports/licenses', [ReportController::class, 'licenses'])->name('reports.licenses');
+    //Email
+    Route::get('/emails/send', [EmailController::class, 'create'])->name('emails.create');
+    Route::post('/emails/send', [EmailController::class, 'send'])->name('emails.send');
 
 });
 
@@ -154,19 +201,52 @@ Route::fallback(function () {
 require __DIR__.'/auth.php';
 
 
-//For email verification
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
- 
-    return redirect('/home');
-})->middleware(['auth', 'signed'])->name('verification.verify');
+    //For email verification
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->middleware('auth')->name('verification.notice');
+    
+    // Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    //     $request->fulfill();
+     
+    //     return redirect('/home');
+    // })->middleware(['auth', 'signed'])->name('verification.verify');
 
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
- 
-    return back()->with('message', 'Verification link sent!');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+    Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+        $user = User::findOrFail($id);
+    
+        // Optional: Log out the user if they are currently logged in
+        Auth::logout();
+    
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            abort(403, 'Invalid or expired verification link.');
+        }
+    
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+    
+        return redirect('/login')->with('status', 'Your email has been verified. Please log in.');
+    })->middleware(['signed'])->name('verification.verify');
+
+
+    
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+     
+        return back()->with('message', 'Verification link sent!');
+    })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+
+
+// running a seeder using route
+// Route::get('/run-seeder', function () {
+//     Artisan::call('db:seed', [
+//         '--class' => 'YourSeederClassName', // e.g., UserSeeder
+//         '--force' => true
+//     ]);
+
+//     return 'Seeder executed';
+// });
